@@ -53,23 +53,33 @@ async def run_code(payload: CodeExecutionRequest):
     code_to_run = payload.code
     lang = payload.language.lower()
     
-    lang_mapping = {
-        "python": "python",
-        "cpp": "cpp",
-        "c++": "cpp",
-        "javascript": "javascript",
-        "js": "javascript",
-        "java": "java",
-        "csharp": "csharp",
-        "c#": "csharp"
+    lang_config = {
+        "python": {"language": "python", "version": "3.10.0"},
+        "javascript": {"language": "javascript", "version": "18.15.0"},
+        "js": {"language": "javascript", "version": "18.15.0"},
+        "typescript": {"language": "typescript", "version": "5.0.3"},
+        "ts": {"language": "typescript", "version": "5.0.3"},
+        "cpp": {"language": "cpp", "version": "10.2.0"},
+        "c++": {"language": "cpp", "version": "10.2.0"},
+        "c": {"language": "c", "version": "10.2.0"},
+        "csharp": {"language": "csharp", "version": "6.12.0"},
+        "c#": {"language": "csharp", "version": "6.12.0"},
+        "java": {"language": "java", "version": "15.0.2"},
+        "go": {"language": "go", "version": "1.16.2"},
+        "rust": {"language": "rust", "version": "1.68.2"},
+        "php": {"language": "php", "version": "8.2.3"},
+        "ruby": {"language": "ruby", "version": "3.0.1"},
+        "swift": {"language": "swift", "version": "5.3.3"},
+        "kotlin": {"language": "kotlin", "version": "1.8.20"},
+        "sql": {"language": "sqlite3", "version": "3.36.0"}
     }
     
-    piston_lang = lang_mapping.get(lang, "python")
+    config = lang_config.get(lang, {"language": "python", "version": "3.10.0"})
     
     url = "https://emkc.org/api/v2/piston/execute"
     data = {
-        "language": piston_lang,
-        "version": "*",
+        "language": config["language"],
+        "version": config["version"],
         "files": [
             {
                 "content": code_to_run
@@ -93,7 +103,3 @@ async def run_code(payload: CodeExecutionRequest):
             
     except Exception as e:
         return {"success": False, "output": str(e)}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app:app", host="127.0.0.1", port=8080, reload=True)
