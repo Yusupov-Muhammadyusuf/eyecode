@@ -8,6 +8,7 @@ const codeEditor = document.getElementById('codeEditor');
 const languageSelect = document.getElementById('languageSelect');
 const spokenLanguage = document.getElementById('spokenLanguage');
 const consoleOutput = document.getElementById('consoleOutput');
+const runCodeBtn = document.getElementById('runCodeBtn');
 
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
@@ -80,6 +81,34 @@ async function sendAudioToBackend(blob) {
     }
 }
 
-document.getElementById('runCodeBtn').addEventListener('click', () => {
-    consoleOutput.textContent = ">>> Executing Code:\n" + codeEditor.value + "\n\n[Status: Execution Successful]";
+runCodeBtn.addEventListener('click', async () => {
+    const codeToRun = codeEditor.value;
+    
+    if (!codeToRun.trim()) {
+        consoleOutput.textContent = "No code to execute!";
+        return;
+    }
+
+    consoleOutput.textContent = ">>> Executing Code...\nPlease wait...";
+
+    try {
+        const response = await fetch("/api/run-code", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ code: codeToRun })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            consoleOutput.textContent = ">>> Executing Code:\n" + codeToRun + "\n\n--- Output ---\n" + result.output + "\n[Status: Execution Successful]";
+        } else {
+            consoleOutput.textContent = ">>> Executing Code:\n" + codeToRun + "\n\n--- Error ---\n" + result.output + "\n[Status: Execution Failed]";
+        }
+    } catch (err) {
+        console.error(err);
+        consoleOutput.textContent = "Failed to connect to the server for code execution.";
+    }
 });
