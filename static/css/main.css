@@ -10,6 +10,10 @@ body {
     border-radius: 12px;
 }
 
+.form-select {
+    cursor: pointer;
+}
+
 .form-control, .form-select {
     background-color: #ffffff !important;
     color: #212529 !important;
