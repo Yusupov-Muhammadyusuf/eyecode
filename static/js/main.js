@@ -59,8 +59,8 @@ async function sendAudioToBackend(blob) {
     formData.append('spoken_language', spokenLanguage.value);
 
     try {
-        const response = await fetch('http://127.0.0.1:8080/api/convert', {
-            method: 'POST',
+        const response = await fetch("/api/convert", {
+            method: "POST",
             body: formData
         });
 
