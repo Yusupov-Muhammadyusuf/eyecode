@@ -1,8 +1,11 @@
 import os
 import shutil
+import sys
+import io
 
 from ai_service import process_voice_to_code
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse
@@ -15,6 +18,9 @@ app = FastAPI(title="Voice Code Assistant")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+class CodeExecutionRequest(BaseModel):
+    code: str
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -42,6 +48,29 @@ async def convert_voice(
     finally:
         if os.path.exists(temp_audio_path):
             os.remove(temp_audio_path)
+
+@app.post("/api/run-code")
+async def run_code(payload: CodeExecutionRequest):
+    code_to_run = payload.code
+    
+    old_stdout = sys.stdout
+    new_stdout = io.StringIO()
+    sys.stdout = new_stdout
+    
+    try:
+        exec(code_to_run, {})
+        output = new_stdout.getvalue()
+        success = True
+    except Exception as e:
+        output = str(e)
+        success = False
+    finally:
+        sys.stdout = old_stdout
+        
+    return {
+        "success": success,
+        "output": output if output else "Code executed successfully (no print output)."
+    }
 
 if __name__ == "__main__":
     import uvicorn
