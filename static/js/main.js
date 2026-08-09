@@ -83,13 +83,14 @@ async function sendAudioToBackend(blob) {
 
 runCodeBtn.addEventListener('click', async () => {
     const codeToRun = codeEditor.value;
+    const selectedLanguage = languageSelect.value;
     
     if (!codeToRun.trim()) {
         consoleOutput.textContent = "No code to execute!";
         return;
     }
 
-    consoleOutput.textContent = ">>> Executing Code...\nPlease wait...";
+    consoleOutput.textContent = ">>> Executing Code (" + selectedLanguage + ")...\nPlease wait...";
 
     try {
         const response = await fetch("/api/run-code", {
@@ -97,7 +98,10 @@ runCodeBtn.addEventListener('click', async () => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ code: codeToRun })
+            body: JSON.stringify({ 
+                code: codeToRun,
+                language: selectedLanguage 
+            })
         });
 
         const result = await response.json();
