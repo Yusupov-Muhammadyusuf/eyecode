@@ -1,16 +1,14 @@
 import os
 import shutil
-import sys
-import io
-
+import requests
 from ai_service import process_voice_to_code
 from dotenv import load_dotenv
-from pydantic import BaseModel
 
 from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -21,6 +19,7 @@ templates = Jinja2Templates(directory="templates")
 
 class CodeExecutionRequest(BaseModel):
     code: str
+    language: str = "python"
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -52,25 +51,48 @@ async def convert_voice(
 @app.post("/api/run-code")
 async def run_code(payload: CodeExecutionRequest):
     code_to_run = payload.code
+    lang = payload.language.lower()
     
-    old_stdout = sys.stdout
-    new_stdout = io.StringIO()
-    sys.stdout = new_stdout
+    lang_mapping = {
+        "python": "python",
+        "cpp": "cpp",
+        "c++": "cpp",
+        "javascript": "javascript",
+        "js": "javascript",
+        "java": "java",
+        "csharp": "csharp",
+        "c#": "csharp"
+    }
+    
+    piston_lang = lang_mapping.get(lang, "python")
+    
+    url = "https://emkc.org/api/v2/piston/execute"
+    data = {
+        "language": piston_lang,
+        "version": "*",
+        "files": [
+            {
+                "content": code_to_run
+            }
+        ]
+    }
     
     try:
-        exec(code_to_run, {})
-        output = new_stdout.getvalue()
-        success = True
-    except Exception as e:
-        output = str(e)
-        success = False
-    finally:
-        sys.stdout = old_stdout
+        response = requests.post(url, json=data)
+        result = response.json()
         
-    return {
-        "success": success,
-        "output": output if output else "Code executed successfully (no print output)."
-    }
+        if "run" in result:
+            output = result["run"].get("output", "")
+            stderr = result["run"].get("stderr", "")
+            
+            if stderr:
+                return {"success": False, "output": stderr}
+            return {"success": True, "output": output if output else "Code executed successfully (no output)."}
+        else:
+            return {"success": False, "output": "Execution error from compiler service."}
+            
+    except Exception as e:
+        return {"success": False, "output": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
