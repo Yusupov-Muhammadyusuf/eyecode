@@ -1,7 +1,7 @@
 import os
 import shutil
 import requests
-from ai_service import process_voice_to_code
+from src.ai_service import process_voice_to_code
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, UploadFile, File, Form, Request
