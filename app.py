@@ -51,55 +51,59 @@ async def convert_voice(
 @app.post("/api/run-code")
 async def run_code(payload: CodeExecutionRequest):
     code_to_run = payload.code
-    lang = payload.language.lower()
+    lang = payload.language.lower().strip()
     
-    lang_config = {
-        "python": {"language": "python", "version": "*"},
-        "javascript": {"language": "javascript", "version": "*"},
-        "js": {"language": "javascript", "version": "*"},
-        "typescript": {"language": "typescript", "version": "*"},
-        "ts": {"language": "typescript", "version": "*"},
-        "cpp": {"language": "cpp", "version": "*"},
-        "c++": {"language": "cpp", "version": "*"},
-        "c": {"language": "c", "version": "*"},
-        "csharp": {"language": "csharp", "version": "*"},
-        "c#": {"language": "csharp", "version": "*"},
-        "java": {"language": "java", "version": "*"},
-        "go": {"language": "go", "version": "*"},
-        "rust": {"language": "rust", "version": "*"},
-        "php": {"language": "php", "version": "*"},
-        "ruby": {"language": "ruby", "version": "*"},
-        "swift": {"language": "swift", "version": "*"},
-        "kotlin": {"language": "kotlin", "version": "*"},
-        "sql": {"language": "sqlite3", "version": "*"}
+    language_ids = {
+        "python": 71,
+        "javascript": 63,
+        "js": 63,
+        "typescript": 74,
+        "ts": 74,
+        "cpp": 54,
+        "c++": 54,
+        "c": 50,
+        "csharp": 51,
+        "c#": 51,
+        "java": 62,
+        "go": 60,
+        "rust": 73,
+        "php": 68,
+        "ruby": 72,
+        "swift": 83,
+        "kotlin": 78,
+        "sql": 82
     }
     
-    config = lang_config.get(lang, {"language": "python", "version": "3.10.0"})
+    lang_id = language_ids.get(lang, 71) # Standart holatda Python
     
-    url = "https://emkc.org/api/v2/piston/execute"
+    url = "https://ce.judge0.com/submissions?base64_encoded=false&wait=true"
+    
     data = {
-        "language": config["language"],
-        "version": config["version"],
-        "files": [
-            {
-                "content": code_to_run
-            }
-        ]
+        "source_code": code_to_run,
+        "language_id": lang_id
+    }
+    
+    headers = {
+        "Content-Type": "application/json"
     }
     
     try:
-        response = requests.post(url, json=data)
+        response = requests.post(url, json=data, headers=headers)
         result = response.json()
         
-        if "run" in result:
-            output = result["run"].get("output", "")
-            stderr = result["run"].get("stderr", "")
-            
-            if stderr:
-                return {"success": False, "output": stderr}
-            return {"success": True, "output": output if output else "Code executed successfully (no output)."}
-        else:
-            return {"success": False, "output": "Execution error from compiler service."}
+        stdout = result.get("stdout")
+        stderr = result.get("stderr")
+        compile_output = result.get("compile_output")
+        status = result.get("status", {}).get("description")
+        
+        if compile_output:
+            return {"success": False, "output": "Compilation Error:\n" + compile_output}
+        if stderr:
+            return {"success": False, "output": stderr}
+        if stdout is not None:
+            return {"success": True, "output": stdout if stdout else "Code executed successfully (no output)."}
+        
+        return {"success": False, "output": f"Execution status: {status}"}
             
     except Exception as e:
         return {"success": False, "output": str(e)}
