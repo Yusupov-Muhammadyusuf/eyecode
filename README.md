@@ -1,6 +1,6 @@
 # EyeCode
 
-<img src="https://github.com/user-attachments/assets/0c07d891-c0d2-4680-9b41-a683c17c39ee" alt="EyeCode Logo" width="200" />
+<img src="https://github.com/user-attachments/assets/0c07d891-c0d2-4680-9b41-a683c17c39ee" alt="EyeCode Logo" width="180" />
 
 ## Inspiration
 
