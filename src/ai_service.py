@@ -10,7 +10,7 @@ def process_voice_to_code(audio_file_path: str, target_lang: str = "python", spo
         transcription = client.audio.transcriptions.create(
             file=(audio_file_path, file.read()),
             model="whisper-large-v3",
-            language=spoken_lang if spoken_lang in ["uz", "en", "ru"] else None,
+            language=spoken_lang if spoken_lang in ["uz", "en", "ru", "es", "zh", "hi", "ar", "fr", "de", "ja", "ko", "tr", "pt"] else None,
             response_format="text"
         )
     
