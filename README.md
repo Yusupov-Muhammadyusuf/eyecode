@@ -1,5 +1,7 @@
 # EyeCode
 
+<img src="https://github.com/user-attachments/assets/0c07d891-c0d2-4680-9b41-a683c17c39ee" alt="EyeCode Logo" width="150" />
+
 ## Inspiration
 
 Coding can be extremely challenging and tedious for visually impaired or physically disabled developers, who often struggle with complex visual syntax, manual typing, and slow screen readers. EyeCode bridges the gap between human speech and programming, creating a tool that allows developers to write and execute code completely hands-free using just their voice.
